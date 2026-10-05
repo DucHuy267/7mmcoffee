@@ -1,0 +1,10 @@
+{
+  "Navigation": { "home": "Home", "about": "About", "menu": "Menu", "stories": "Stories", "contact": "Contact", "explore": "Explore menu", "ourStory": "Our story" },
+  "Common": { "readMore": "Read more", "viewAll": "View all", "from": "From", "backToMenu": "Back to menu", "related": "You may also enjoy", "featured": "Featured", "category": "Category", "location": "Visit us", "openingHours": "Opening hours", "send": "Send message", "sending": "Sending...", "success": "Thank you. We’ll be in touch shortly!", "empty": "There is nothing to show yet.", "all": "All" },
+  "Home": { "introEyebrow": "Welcome to 7mmcoffee", "introTitle": "A pause, carefully brewed.", "introText": "We make thoughtful coffee so every visit becomes a moment worth remembering.", "featuredEyebrow": "House favourites", "featuredTitle": "A few things we love", "storyEyebrow": "Our brand story", "storyTitle": "Coffee connects the beautiful things.", "storyText": "From each bean to conversations across the table, 7mmcoffee cares about every small detail.", "latestEyebrow": "From the journal", "latestTitle": "Latest stories", "contactTitle": "There’s a table waiting for you." },
+  "About": { "philosophy": "Our philosophy", "coffee": "From bean to moment", "gallery": "The 7mmcoffee space" },
+  "Menu": { "eyebrow": "Our menu", "title": "Brewed for your rhythm.", "search": "Search drinks or pastries", "noResults": "No matching items found." },
+  "Stories": { "eyebrow": "The 7mmcoffee journal", "title": "Stories around a cup of coffee.", "by": "By", "share": "Share this story" },
+  "Contact": { "eyebrow": "Contact", "title": "We’d love to see you.", "name": "Your name", "email": "Email address", "phone": "Phone number", "message": "What would you like to tell us?", "map": "Open map" },
+  "Footer": { "tagline": "More than coffee, it’s a moment.", "copyright": "© {year} 7mmcoffee. All rights reserved." }
+}

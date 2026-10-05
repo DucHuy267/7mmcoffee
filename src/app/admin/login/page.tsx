@@ -1,0 +1,11 @@
+"use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { loginSchema } from "@/lib/validations/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
+type LoginInput = { email: string; password: string };
+export default function LoginPage() { const router = useRouter(); const [error, setError] = useState<string | null>(null); const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({ resolver: zodResolver(loginSchema), defaultValues: { email: "", password: "" } }); async function submit(data: LoginInput) { setError(null); const response = await fetch("/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const body = await response.json() as { message?: string }; if (!response.ok) { setError(body.message || "Không thể đăng nhập."); return; } router.push("/admin"); router.refresh(); } return <main className="grid min-h-screen place-items-center bg-espresso p-5"><form onSubmit={handleSubmit(submit)} className="w-full max-w-md rounded-3xl border border-white/15 bg-card p-7 shadow-2xl sm:p-9"><p className="font-display text-3xl text-espresso">7mmcoffee</p><h1 className="mt-8 font-display text-4xl text-espresso">Chào mừng trở lại.</h1><p className="mt-2 text-sm text-muted-foreground">Đăng nhập để quản lý nội dung quán.</p><label className="mt-7 block text-sm font-medium">Email<Input className="mt-2" type="email" autoComplete="email" {...register("email")} /></label>{errors.email && <p className="mt-1 text-xs text-red-700">{errors.email.message}</p>}<label className="mt-5 block text-sm font-medium">Mật khẩu<Input className="mt-2" type="password" autoComplete="current-password" {...register("password")} /></label>{errors.password && <p className="mt-1 text-xs text-red-700">{errors.password.message}</p>}{error && <p className="mt-4 text-sm text-red-700">{error}</p>}<Button type="submit" className="mt-7 w-full" disabled={isSubmitting}>{isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}</Button></form></main>; }

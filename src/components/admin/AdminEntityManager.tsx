@@ -10,18 +10,414 @@ import { toSlug } from "@/lib/utils";
 
 type Scalar = string | number | boolean | string[] | undefined;
 type AdminRow = Record<string, unknown> & { _id: string };
-type Field = { name: string; label: string; type?: "text" | "textarea" | "number" | "checkbox" | "select" | "image" | "date" | "gallery"; required?: boolean; options?: Array<{ label: string; value: string }> };
+type Field = {
+  name: string;
+  label: string;
+  type?:
+    | "text"
+    | "textarea"
+    | "number"
+    | "checkbox"
+    | "select"
+    | "image"
+    | "date"
+    | "gallery";
+  required?: boolean;
+  options?: Array<{ label: string; value: string }>;
+};
 type ApiEnvelope = { success: boolean; data: AdminRow[]; message?: string };
-const fetcher = (url: string) => fetch(url).then(async (response) => { const data = await response.json() as ApiEnvelope; if (!response.ok) throw new Error(data.message || "Không thể tải dữ liệu."); return data.data; });
+const fetcher = (url: string) =>
+  fetch(url).then(async (response) => {
+    const data = (await response.json()) as ApiEnvelope;
+    if (!response.ok) throw new Error(data.message || "Không thể tải dữ liệu.");
+    return data.data;
+  });
 
-export function AdminEntityManager({ endpoint, title, description, fields, columns }: { endpoint: "products" | "categories" | "stories"; title: string; description: string; fields: Field[]; columns: Array<{ key: string; label: string }> }) {
-  const { data, error, isLoading, mutate } = useSWR<AdminRow[]>(`/api/${endpoint}?admin=true`, fetcher); const [editing, setEditing] = useState<AdminRow | null>(null); const [open, setOpen] = useState(false); const [notice, setNotice] = useState<string | null>(null);
-  const categories = useSWR<AdminRow[]>(endpoint === "products" ? "/api/categories?admin=true" : null, fetcher).data;
-  const resolvedFields = useMemo(() => fields.map((field) => field.name === "category" && endpoint === "products" ? { ...field, options: (categories ?? []).map((category) => ({ value: category._id, label: String(category.nameVi) })) } : field), [fields, endpoint, categories]);
-  function start(row?: AdminRow) { setEditing(row ?? null); setOpen(true); }
-  async function remove(id: string) { if (!window.confirm("Bạn có chắc muốn xóa mục này?")) return; const response = await fetch(`/api/${endpoint}/${id}`, { method: "DELETE" }); const body = await response.json() as { message?: string }; if (!response.ok) { setNotice(body.message || "Không thể xóa."); return; } setNotice("Đã xóa thành công."); mutate(); }
-  return <div><div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><h1 className="font-display text-4xl text-espresso">{title}</h1><p className="mt-2 text-sm text-muted-foreground">{description}</p></div><Button onClick={() => start()}><Plus size={17} />Tạo mới</Button></div>{notice && <p role="status" className="mb-4 rounded-xl bg-coffee/10 px-4 py-3 text-sm text-coffee">{notice}</p>}{isLoading && <div className="grid gap-3"><div className="h-16 animate-pulse rounded-xl bg-muted" /><div className="h-16 animate-pulse rounded-xl bg-muted" /></div>}{error && <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error.message}</p>}{data && <div className="overflow-x-auto rounded-2xl border bg-card"><table className="min-w-[680px] w-full text-left text-sm"><thead className="border-b bg-muted/35 text-xs uppercase tracking-[.12em] text-muted-foreground"><tr>{columns.map((column) => <th key={column.key} className="px-5 py-4 font-semibold">{column.label}</th>)}<th className="px-5 py-4 text-right">Thao tác</th></tr></thead><tbody>{data.map((row) => <tr key={row._id} className="border-b last:border-0"><RowCells row={row} columns={columns} /><td className="px-5 py-3"><div className="flex justify-end gap-1"><button onClick={() => start(row)} className="rounded-lg p-2 text-coffee hover:bg-coffee/10" aria-label="Edit"><Pencil size={16} /></button><button onClick={() => remove(row._id)} className="rounded-lg p-2 text-red-700 hover:bg-red-50" aria-label="Delete"><Trash2 size={16} /></button></div></td></tr>)}</tbody></table>{data.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">Chưa có dữ liệu.</p>}</div>}<Dialog open={open} onOpenChange={setOpen}><DialogContent className="max-w-3xl"><DialogTitle>{editing ? "Chỉnh sửa" : "Tạo mới"} {title.slice(0, -1)}</DialogTitle><EntityForm endpoint={endpoint} fields={resolvedFields} item={editing} onDone={(message) => { setOpen(false); setNotice(message); mutate(); }} /></DialogContent></Dialog></div>;
+export function AdminEntityManager({
+  endpoint,
+  title,
+  description,
+  fields,
+  columns,
+}: {
+  endpoint: "products" | "categories" | "stories";
+  title: string;
+  description: string;
+  fields: Field[];
+  columns: Array<{ key: string; label: string }>;
+}) {
+  const { data, error, isLoading, mutate } = useSWR<AdminRow[]>(
+    `/api/${endpoint}?admin=true`,
+    fetcher,
+  );
+  const [editing, setEditing] = useState<AdminRow | null>(null);
+  const [open, setOpen] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const categories = useSWR<AdminRow[]>(
+    endpoint === "products" ? "/api/categories?admin=true" : null,
+    fetcher,
+  ).data;
+  const resolvedFields = useMemo(
+    () =>
+      fields.map((field) =>
+        field.name === "category" && endpoint === "products"
+          ? {
+              ...field,
+              options: (categories ?? []).map((category) => ({
+                value: category._id,
+                label: String(category.nameVi),
+              })),
+            }
+          : field,
+      ),
+    [fields, endpoint, categories],
+  );
+  function start(row?: AdminRow) {
+    setEditing(row ?? null);
+    setOpen(true);
+  }
+  async function remove(id: string) {
+    if (!window.confirm("Bạn có chắc muốn xóa mục này?")) return;
+    const response = await fetch(`/api/${endpoint}/${id}`, {
+      method: "DELETE",
+    });
+    const body = (await response.json()) as { message?: string };
+    if (!response.ok) {
+      setNotice(body.message || "Không thể xóa.");
+      return;
+    }
+    setNotice("Đã xóa thành công.");
+    mutate();
+  }
+  return (
+    <div>
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <h1 className="font-display text-4xl text-espresso">{title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+        </div>
+        <Button onClick={() => start()}>
+          <Plus size={17} />
+          Tạo mới
+        </Button>
+      </div>
+      {notice && (
+        <p
+          role="status"
+          className="mb-4 rounded-xl bg-coffee/10 px-4 py-3 text-sm text-coffee"
+        >
+          {notice}
+        </p>
+      )}
+      {isLoading && (
+        <div className="grid gap-3">
+          <div className="h-16 animate-pulse rounded-xl bg-muted" />
+          <div className="h-16 animate-pulse rounded-xl bg-muted" />
+        </div>
+      )}
+      {error && (
+        <p className="rounded-xl bg-red-50 p-4 text-sm text-red-700">
+          {error.message}
+        </p>
+      )}
+      {data && (
+        <div className="overflow-x-auto rounded-2xl border bg-card">
+          <table className="min-w-[680px] w-full text-left text-sm">
+            <thead className="border-b bg-muted/35 text-xs uppercase tracking-[.12em] text-muted-foreground">
+              <tr>
+                {columns.map((column) => (
+                  <th key={column.key} className="px-5 py-4 font-semibold">
+                    {column.label}
+                  </th>
+                ))}
+                <th className="px-5 py-4 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row) => (
+                <tr key={row._id} className="border-b last:border-0">
+                  <RowCells row={row} columns={columns} />
+                  <td className="px-5 py-3">
+                    <div className="flex justify-end gap-1">
+                      <button
+                        onClick={() => start(row)}
+                        className="rounded-lg p-2 text-coffee hover:bg-coffee/10"
+                        aria-label="Edit"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => remove(row._id)}
+                        className="rounded-lg p-2 text-red-700 hover:bg-red-50"
+                        aria-label="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {data.length === 0 && (
+            <p className="p-8 text-center text-sm text-muted-foreground">
+              Chưa có dữ liệu.
+            </p>
+          )}
+        </div>
+      )}
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogTitle>
+            {editing ? "Chỉnh sửa" : "Tạo mới"} {title.slice(0, -1)}
+          </DialogTitle>
+          <EntityForm
+            endpoint={endpoint}
+            fields={resolvedFields}
+            item={editing}
+            onDone={(message) => {
+              setOpen(false);
+              setNotice(message);
+              mutate();
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 }
-function RowCells({ row, columns }: { row: AdminRow; columns: Array<{ key: string; label: string }> }) { return <>{columns.map((column) => { const value = row[column.key]; const category = typeof value === "object" && value && "nameVi" in value ? value as { nameVi: string } : null; return <td key={column.key} className="max-w-64 truncate px-5 py-4 text-espresso">{typeof value === "boolean" ? <span className={value ? "text-emerald-700" : "text-muted-foreground"}>{value ? "Hiển thị" : "Đã ẩn"}</span> : category ? category.nameVi : value instanceof Date ? value.toLocaleDateString() : String(value ?? "—")}</td>; })}</>; }
-function EntityForm({ endpoint, fields, item, onDone }: { endpoint: string; fields: Field[]; item: AdminRow | null; onDone: (message: string) => void }) { const initial = Object.fromEntries(fields.map((field) => { const value = item?.[field.name]; if (field.type === "gallery") return [field.name, Array.isArray(value) ? value.join("\n") : ""]; if (field.type === "date" && typeof value === "string") return [field.name, value.slice(0, 10)]; if (field.name === "category" && value && typeof value === "object" && "_id" in value) return [field.name, String((value as { _id: string })._id)]; return [field.name, typeof value === "boolean" || typeof value === "number" || typeof value === "string" ? value : ""]; })); const [form, setForm] = useState<Record<string, Scalar>>(initial); const [busy, setBusy] = useState(false); const [error, setError] = useState<string | null>(null); const set = (key: string, value: Scalar) => setForm((old) => ({ ...old, [key]: value })); async function upload(file: File, field: string) { setBusy(true); const body = new FormData(); body.append("file", file); const response = await fetch("/api/uploads", { method: "POST", body }); const json = await response.json() as { data?: { url: string }; message?: string }; setBusy(false); if (!response.ok || !json.data) { setError(json.message || "Không thể tải ảnh."); return; } set(field, json.data.url); } async function save(event: React.FormEvent) { event.preventDefault(); setBusy(true); setError(null); const payload: Record<string, unknown> = {}; for (const field of fields) { const value = form[field.name]; payload[field.name] = field.type === "number" ? (value === "" ? undefined : Number(value)) : field.type === "date" ? (value || undefined) : field.type === "gallery" ? String(value ?? "").split("\n").map((entry) => entry.trim()).filter(Boolean) : value; } if (!item && !payload.slug && typeof payload.nameEn === "string") payload.slug = toSlug(payload.nameEn); const response = await fetch(item ? `/api/${endpoint}/${item._id}` : `/api/${endpoint}`, { method: item ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); const json = await response.json() as { message?: string }; setBusy(false); if (!response.ok) { setError(json.message || "Không thể lưu."); return; } onDone(item ? "Đã cập nhật thành công." : "Đã tạo thành công."); } return <form className="mt-6" onSubmit={save}><div className="grid gap-4 sm:grid-cols-2">{fields.map((field) => <FieldInput key={field.name} field={field} value={form[field.name]} set={set} upload={upload} />)}</div>{error && <p className="mt-4 text-sm text-red-700">{error}</p>}<Button type="submit" className="mt-6" disabled={busy}>{busy && <LoaderCircle className="animate-spin" size={16} />}{busy ? "Đang lưu..." : "Lưu thay đổi"}</Button></form>; }
-function FieldInput({ field, value, set, upload }: { field: Field; value: Scalar; set: (key: string, value: Scalar) => void; upload: (file: File, field: string) => Promise<void> }) { const full = field.type === "textarea" || field.type === "gallery"; return <label className={`${full ? "sm:col-span-2" : ""} block text-sm font-medium text-espresso`}><span className="mb-2 block">{field.label}</span>{field.type === "checkbox" ? <button type="button" role="switch" aria-checked={Boolean(value)} onClick={() => set(field.name, !value)} className={`h-7 w-12 rounded-full p-1 transition ${value ? "bg-coffee" : "bg-muted"}`}><span className={`block h-5 w-5 rounded-full bg-white transition ${value ? "translate-x-5" : ""}`} /></button> : field.type === "textarea" || field.type === "gallery" ? <Textarea value={String(value ?? "")} onChange={(event) => set(field.name, event.target.value)} placeholder={field.type === "gallery" ? "Mỗi URL trên một dòng" : undefined} required={field.required} /> : field.type === "select" ? <select value={String(value ?? "")} onChange={(event) => set(field.name, event.target.value)} className="h-11 w-full rounded-xl border bg-white/70 px-3 text-sm outline-none focus:border-coffee" required={field.required}><option value="">Chọn…</option>{field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select> : <div className="flex gap-2"><Input type={field.type === "image" ? "url" : field.type || "text"} value={String(value ?? "")} onChange={(event) => set(field.name, event.target.value)} required={field.required} />{field.type === "image" && <label className="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border px-3 text-coffee hover:bg-muted"><Upload size={16} /><span className="sr-only">Upload image</span><input type="file" accept="image/*" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file, field.name); }} /></label>}</div>}</label>; }
+function RowCells({
+  row,
+  columns,
+}: {
+  row: AdminRow;
+  columns: Array<{ key: string; label: string }>;
+}) {
+  return (
+    <>
+      {columns.map((column) => {
+        const value = row[column.key];
+        const category =
+          typeof value === "object" && value && "nameVi" in value
+            ? (value as { nameVi: string })
+            : null;
+        return (
+          <td
+            key={column.key}
+            className="max-w-64 truncate px-5 py-4 text-espresso"
+          >
+            {typeof value === "boolean" ? (
+              <span
+                className={value ? "text-emerald-700" : "text-muted-foreground"}
+              >
+                {value ? "Hiển thị" : "Đã ẩn"}
+              </span>
+            ) : category ? (
+              category.nameVi
+            ) : value instanceof Date ? (
+              value.toLocaleDateString()
+            ) : (
+              String(value ?? "—")
+            )}
+          </td>
+        );
+      })}
+    </>
+  );
+}
+function EntityForm({
+  endpoint,
+  fields,
+  item,
+  onDone,
+}: {
+  endpoint: string;
+  fields: Field[];
+  item: AdminRow | null;
+  onDone: (message: string) => void;
+}) {
+  const initial = Object.fromEntries(
+    fields.map((field) => {
+      const value = item?.[field.name];
+      if (field.type === "gallery")
+        return [field.name, Array.isArray(value) ? value.join("\n") : ""];
+      if (field.type === "date" && typeof value === "string")
+        return [field.name, value.slice(0, 10)];
+      if (
+        field.name === "category" &&
+        value &&
+        typeof value === "object" &&
+        "_id" in value
+      )
+        return [field.name, String((value as { _id: string })._id)];
+      return [
+        field.name,
+        typeof value === "boolean" ||
+        typeof value === "number" ||
+        typeof value === "string"
+          ? value
+          : "",
+      ];
+    }),
+  );
+  const [form, setForm] = useState<Record<string, Scalar>>(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const set = (key: string, value: Scalar) =>
+    setForm((old) => ({ ...old, [key]: value }));
+  async function upload(file: File, field: string) {
+    setBusy(true);
+    const body = new FormData();
+    body.append("file", file);
+    const response = await fetch("/api/uploads", { method: "POST", body });
+    const json = (await response.json()) as {
+      data?: { url: string };
+      message?: string;
+    };
+    setBusy(false);
+    if (!response.ok || !json.data) {
+      setError(json.message || "Không thể tải ảnh.");
+      return;
+    }
+    set(field, json.data.url);
+  }
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    const payload: Record<string, unknown> = {};
+    for (const field of fields) {
+      const value = form[field.name];
+      payload[field.name] =
+        field.type === "number"
+          ? value === ""
+            ? undefined
+            : Number(value)
+          : field.type === "date"
+            ? value || undefined
+            : field.type === "gallery"
+              ? String(value ?? "")
+                  .split("\n")
+                  .map((entry) => entry.trim())
+                  .filter(Boolean)
+              : value;
+    }
+    if (!item && !payload.slug && typeof payload.nameEn === "string")
+      payload.slug = toSlug(payload.nameEn);
+    const response = await fetch(
+      item ? `/api/${endpoint}/${item._id}` : `/api/${endpoint}`,
+      {
+        method: item ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      },
+    );
+    const json = (await response.json()) as { message?: string };
+    setBusy(false);
+    if (!response.ok) {
+      setError(json.message || "Không thể lưu.");
+      return;
+    }
+    onDone(item ? "Đã cập nhật thành công." : "Đã tạo thành công.");
+  }
+  return (
+    <form className="mt-6" onSubmit={save}>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {fields.map((field) => (
+          <FieldInput
+            key={field.name}
+            field={field}
+            value={form[field.name]}
+            set={set}
+            upload={upload}
+          />
+        ))}
+      </div>
+      {error && <p className="mt-4 text-sm text-red-700">{error}</p>}
+      <Button type="submit" className="mt-6" disabled={busy}>
+        {busy && <LoaderCircle className="animate-spin" size={16} />}
+        {busy ? "Đang lưu..." : "Lưu thay đổi"}
+      </Button>
+    </form>
+  );
+}
+function FieldInput({
+  field,
+  value,
+  set,
+  upload,
+}: {
+  field: Field;
+  value: Scalar;
+  set: (key: string, value: Scalar) => void;
+  upload: (file: File, field: string) => Promise<void>;
+}) {
+  const full = field.type === "textarea" || field.type === "gallery";
+  return (
+    <label
+      className={`${full ? "sm:col-span-2" : ""} block text-sm font-medium text-espresso`}
+    >
+      <span className="mb-2 block">{field.label}</span>
+      {field.type === "checkbox" ? (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={Boolean(value)}
+          onClick={() => set(field.name, !value)}
+          className={`h-7 w-12 rounded-full p-1 transition ${value ? "bg-coffee" : "bg-muted"}`}
+        >
+          <span
+            className={`block h-5 w-5 rounded-full bg-white transition ${value ? "translate-x-5" : ""}`}
+          />
+        </button>
+      ) : field.type === "textarea" || field.type === "gallery" ? (
+        <Textarea
+          value={String(value ?? "")}
+          onChange={(event) => set(field.name, event.target.value)}
+          placeholder={
+            field.type === "gallery" ? "Mỗi URL trên một dòng" : undefined
+          }
+          required={field.required}
+        />
+      ) : field.type === "select" ? (
+        <select
+          value={String(value ?? "")}
+          onChange={(event) => set(field.name, event.target.value)}
+          className="h-11 w-full rounded-xl border bg-white/70 px-3 text-sm outline-none focus:border-coffee"
+          required={field.required}
+        >
+          <option value="">Chọn…</option>
+          {field.options?.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <div className="flex gap-2">
+          <Input
+            type={field.type === "image" ? "url" : field.type || "text"}
+            value={String(value ?? "")}
+            onChange={(event) => set(field.name, event.target.value)}
+            required={field.required}
+          />
+          {field.type === "image" && (
+            <label className="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-xl border px-3 text-coffee hover:bg-muted">
+              <Upload size={16} />
+              <span className="sr-only">Upload image</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void upload(file, field.name);
+                }}
+              />
+            </label>
+          )}
+        </div>
+      )}
+    </label>
+  );
+}

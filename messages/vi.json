@@ -1,10 +1,70 @@
 {
-  "Navigation": { "home": "Trang chủ", "about": "Về chúng tôi", "menu": "Thực đơn", "stories": "Câu chuyện", "contact": "Liên hệ", "explore": "Khám phá menu", "ourStory": "Câu chuyện của chúng tôi" },
-  "Common": { "readMore": "Đọc thêm", "viewAll": "Xem tất cả", "from": "Từ", "backToMenu": "Quay lại thực đơn", "related": "Có thể bạn cũng thích", "featured": "Nổi bật", "category": "Danh mục", "location": "Ghé thăm chúng tôi", "openingHours": "Giờ mở cửa", "send": "Gửi tin nhắn", "sending": "Đang gửi...", "success": "Cảm ơn bạn. Chúng tôi sẽ phản hồi sớm nhất!", "empty": "Chưa có nội dung để hiển thị.", "all": "Tất cả" },
-  "Home": { "introEyebrow": "Chào mừng đến với 7mmcoffee", "introTitle": "Một khoảng lặng, được pha thật kỹ.", "introText": "Chúng tôi tạo nên những ly cà phê chỉn chu, để mỗi lần ghé lại là một khoảnh khắc đáng nhớ.", "featuredEyebrow": "Được yêu thích", "featuredTitle": "Những lựa chọn của nhà", "storyEyebrow": "Câu chuyện thương hiệu", "storyTitle": "Cà phê kết nối những điều đẹp đẽ.", "storyText": "Từ hạt cà phê đến cuộc trò chuyện bên bàn, 7mmcoffee dành sự trân trọng cho từng chi tiết nhỏ.", "latestEyebrow": "Từ nhật ký", "latestTitle": "Câu chuyện mới nhất", "contactTitle": "Một chiếc bàn đang chờ bạn." },
-  "About": { "philosophy": "Triết lý của chúng tôi", "coffee": "Từ hạt đến khoảnh khắc", "gallery": "Không gian 7mmcoffee" },
-  "Menu": { "eyebrow": "Thực đơn", "title": "Được pha cho nhịp sống của bạn.", "search": "Tìm thức uống hoặc bánh ngọt", "noResults": "Không tìm thấy món phù hợp." },
-  "Stories": { "eyebrow": "Nhật ký 7mmcoffee", "title": "Những câu chuyện quanh một tách cà phê.", "by": "Bởi", "share": "Chia sẻ bài viết" },
-  "Contact": { "eyebrow": "Liên hệ", "title": "Hẹn gặp bạn tại quán.", "name": "Họ và tên", "email": "Email", "phone": "Số điện thoại", "message": "Bạn muốn nhắn gì với chúng tôi?", "map": "Mở bản đồ" },
-  "Footer": { "tagline": "More than coffee, it’s a moment.", "copyright": "© {year} 7mmcoffee. Mọi quyền được bảo lưu." }
+  "Navigation": {
+    "home": "Trang chủ",
+    "about": "Về chúng tôi",
+    "menu": "Thực đơn",
+    "stories": "Câu chuyện",
+    "contact": "Liên hệ",
+    "explore": "Khám phá menu",
+    "ourStory": "Câu chuyện của chúng tôi"
+  },
+  "Common": {
+    "readMore": "Đọc thêm",
+    "viewAll": "Xem tất cả",
+    "from": "Từ",
+    "backToMenu": "Quay lại thực đơn",
+    "related": "Có thể bạn cũng thích",
+    "featured": "Nổi bật",
+    "category": "Danh mục",
+    "location": "Ghé thăm chúng tôi",
+    "openingHours": "Giờ mở cửa",
+    "send": "Gửi tin nhắn",
+    "sending": "Đang gửi...",
+    "success": "Cảm ơn bạn. Chúng tôi sẽ phản hồi sớm nhất!",
+    "empty": "Chưa có nội dung để hiển thị.",
+    "all": "Tất cả"
+  },
+  "Home": {
+    "introEyebrow": "Chào mừng đến với 7mmcoffee",
+    "introTitle": "Một khoảng lặng, được pha thật kỹ.",
+    "introText": "Chúng tôi tạo nên những ly cà phê chỉn chu, để mỗi lần ghé lại là một khoảnh khắc đáng nhớ.",
+    "featuredEyebrow": "Được yêu thích",
+    "featuredTitle": "Những lựa chọn của nhà",
+    "storyEyebrow": "Câu chuyện thương hiệu",
+    "storyTitle": "Cà phê kết nối những điều đẹp đẽ.",
+    "storyText": "Từ hạt cà phê đến cuộc trò chuyện bên bàn, 7mmcoffee dành sự trân trọng cho từng chi tiết nhỏ.",
+    "latestEyebrow": "Từ nhật ký",
+    "latestTitle": "Câu chuyện mới nhất",
+    "contactTitle": "Một chiếc bàn đang chờ bạn."
+  },
+  "About": {
+    "philosophy": "Triết lý của chúng tôi",
+    "coffee": "Từ hạt đến khoảnh khắc",
+    "gallery": "Không gian 7mmcoffee"
+  },
+  "Menu": {
+    "eyebrow": "Thực đơn",
+    "title": "Được pha cho nhịp sống của bạn.",
+    "search": "Tìm thức uống hoặc bánh ngọt",
+    "noResults": "Không tìm thấy món phù hợp."
+  },
+  "Stories": {
+    "eyebrow": "Nhật ký 7mmcoffee",
+    "title": "Những câu chuyện quanh một tách cà phê.",
+    "by": "Bởi",
+    "share": "Chia sẻ bài viết"
+  },
+  "Contact": {
+    "eyebrow": "Liên hệ",
+    "title": "Hẹn gặp bạn tại quán.",
+    "name": "Họ và tên",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "message": "Bạn muốn nhắn gì với chúng tôi?",
+    "map": "Mở bản đồ"
+  },
+  "Footer": {
+    "tagline": "More than coffee, it’s a moment.",
+    "copyright": "© {year} 7mmcoffee. Mọi quyền được bảo lưu."
+  }
 }

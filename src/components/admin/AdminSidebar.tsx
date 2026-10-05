@@ -1,7 +1,97 @@
 "use client";
-import { BookOpenText, Coffee, LayoutDashboard, LogOut, Mail, Menu, Settings2, Tags, X } from "lucide-react";
+import {
+  BookOpenText,
+  Coffee,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  Menu,
+  Settings2,
+  Tags,
+  X,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-const links = [{ href: "/admin", label: "Tổng quan", icon: LayoutDashboard }, { href: "/admin/products", label: "Sản phẩm", icon: Coffee }, { href: "/admin/categories", label: "Danh mục", icon: Tags }, { href: "/admin/stories", label: "Bài viết", icon: BookOpenText }, { href: "/admin/about", label: "Giới thiệu", icon: Settings2 }, { href: "/admin/settings", label: "Cài đặt", icon: Settings2 }, { href: "/admin/messages", label: "Tin nhắn", icon: Mail }];
-export function AdminSidebar({ email }: { email: string }) { const [open, setOpen] = useState(false); const pathname = usePathname(); const router = useRouter(); async function logout() { await fetch("/api/auth/logout", { method: "POST" }); router.push("/admin/login"); router.refresh(); } const content = <><div className="flex h-20 items-center justify-between px-5"><span className="font-display text-2xl text-white">7mmcoffee</span><button className="rounded-lg p-2 text-cream md:hidden" onClick={() => setOpen(false)} aria-label="Close navigation"><X size={20} /></button></div><nav className="flex-1 space-y-1 px-3">{links.map(({ href, label, icon: Icon }) => <a key={href} href={href} onClick={() => setOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition ${pathname === href ? "bg-white text-espresso" : "text-cream/70 hover:bg-white/10 hover:text-white"}`}><Icon size={18} />{label}</a>)}</nav><div className="border-t border-white/10 p-4"><p className="truncate px-2 text-xs text-cream/55">{email}</p><button onClick={logout} className="mt-3 flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm text-cream/75 hover:bg-white/10 hover:text-white"><LogOut size={18} />Đăng xuất</button></div></>; return <><button onClick={() => setOpen(true)} className="fixed left-4 top-4 z-30 rounded-xl bg-espresso p-3 text-white shadow-lg md:hidden" aria-label="Open navigation"><Menu size={20} /></button><aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-espresso md:flex">{content}</aside>{open && <div className="fixed inset-0 z-50 md:hidden"><button aria-label="Close navigation overlay" onClick={() => setOpen(false)} className="absolute inset-0 bg-espresso/45" /><aside className="relative flex h-full w-72 flex-col bg-espresso shadow-2xl">{content}</aside></div>}</>; }
+const links = [
+  { href: "/admin", label: "Tổng quan", icon: LayoutDashboard },
+  { href: "/admin/products", label: "Sản phẩm", icon: Coffee },
+  { href: "/admin/categories", label: "Danh mục", icon: Tags },
+  { href: "/admin/stories", label: "Bài viết", icon: BookOpenText },
+  { href: "/admin/about", label: "Giới thiệu", icon: Settings2 },
+  { href: "/admin/settings", label: "Cài đặt", icon: Settings2 },
+  { href: "/admin/messages", label: "Tin nhắn", icon: Mail },
+];
+export function AdminSidebar({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/admin/login");
+    router.refresh();
+  }
+  const content = (
+    <>
+      <div className="flex h-20 items-center justify-between px-5">
+        <span className="font-display text-2xl text-white">7mmcoffee</span>
+        <button
+          className="rounded-lg p-2 text-cream md:hidden"
+          onClick={() => setOpen(false)}
+          aria-label="Close navigation"
+        >
+          <X size={20} />
+        </button>
+      </div>
+      <nav className="flex-1 space-y-1 px-3">
+        {links.map(({ href, label, icon: Icon }) => (
+          <a
+            key={href}
+            href={href}
+            onClick={() => setOpen(false)}
+            className={`flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition ${pathname === href ? "bg-white text-espresso" : "text-cream/70 hover:bg-white/10 hover:text-white"}`}
+          >
+            <Icon size={18} />
+            {label}
+          </a>
+        ))}
+      </nav>
+      <div className="border-t border-white/10 p-4">
+        <p className="truncate px-2 text-xs text-cream/55">{email}</p>
+        <button
+          onClick={logout}
+          className="mt-3 flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm text-cream/75 hover:bg-white/10 hover:text-white"
+        >
+          <LogOut size={18} />
+          Đăng xuất
+        </button>
+      </div>
+    </>
+  );
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed left-4 top-4 z-30 rounded-xl bg-espresso p-3 text-white shadow-lg md:hidden"
+        aria-label="Open navigation"
+      >
+        <Menu size={20} />
+      </button>
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-espresso md:flex">
+        {content}
+      </aside>
+      {open && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            aria-label="Close navigation overlay"
+            onClick={() => setOpen(false)}
+            className="absolute inset-0 bg-espresso/45"
+          />
+          <aside className="relative flex h-full w-72 flex-col bg-espresso shadow-2xl">
+            {content}
+          </aside>
+        </div>
+      )}
+    </>
+  );
+}

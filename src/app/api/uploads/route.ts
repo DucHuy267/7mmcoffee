@@ -2,4 +2,49 @@ import { v2 as cloudinary } from "cloudinary";
 import { failure, handleApiError, success } from "@/lib/api";
 import { isResponse, requireAdmin } from "@/lib/authorization";
 
-export async function POST(request: Request) { const session = await requireAdmin(); if (isResponse(session)) return session; if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) return failure("Cloudinary chưa được cấu hình.", 503); try { const formData = await request.formData(); const file = formData.get("file"); if (!(file instanceof File) || !file.type.startsWith("image/")) return failure("Vui lòng chọn một tệp hình ảnh.", 422); if (file.size > 8 * 1024 * 1024) return failure("Ảnh phải nhỏ hơn 8MB.", 422); cloudinary.config({ cloud_name: process.env.CLOUDINARY_CLOUD_NAME, api_key: process.env.CLOUDINARY_API_KEY, api_secret: process.env.CLOUDINARY_API_SECRET, secure: true }); const buffer = Buffer.from(await file.arrayBuffer()); const result = await new Promise<{ secure_url: string; public_id: string }>((resolve, reject) => { const stream = cloudinary.uploader.upload_stream({ folder: "7mmcoffee" }, (error, upload) => error || !upload ? reject(error || new Error("Upload failed")) : resolve({ secure_url: upload.secure_url, public_id: upload.public_id })); stream.end(buffer); }); return success({ url: result.secure_url, publicId: result.public_id }, { status: 201 }); } catch (error) { return handleApiError(error, "Không thể tải ảnh lên."); } }
+export async function POST(request: Request) {
+  const session = await requireAdmin();
+  if (isResponse(session)) return session;
+  if (
+    !process.env.CLOUDINARY_CLOUD_NAME ||
+    !process.env.CLOUDINARY_API_KEY ||
+    !process.env.CLOUDINARY_API_SECRET
+  )
+    return failure("Cloudinary chưa được cấu hình.", 503);
+  try {
+    const formData = await request.formData();
+    const file = formData.get("file");
+    if (!(file instanceof File) || !file.type.startsWith("image/"))
+      return failure("Vui lòng chọn một tệp hình ảnh.", 422);
+    if (file.size > 8 * 1024 * 1024)
+      return failure("Ảnh phải nhỏ hơn 8MB.", 422);
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+      secure: true,
+    });
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const result = await new Promise<{ secure_url: string; public_id: string }>(
+      (resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: "7mmcoffee" },
+          (error, upload) =>
+            error || !upload
+              ? reject(error || new Error("Upload failed"))
+              : resolve({
+                  secure_url: upload.secure_url,
+                  public_id: upload.public_id,
+                }),
+        );
+        stream.end(buffer);
+      },
+    );
+    return success(
+      { url: result.secure_url, publicId: result.public_id },
+      { status: 201 },
+    );
+  } catch (error) {
+    return handleApiError(error, "Không thể tải ảnh lên.");
+  }
+}

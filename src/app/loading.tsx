@@ -1,1 +1,11 @@
-export default function Loading() { return <div className="min-h-screen animate-pulse bg-background"><div className="mx-auto max-w-7xl px-5 pt-32"><div className="h-5 w-28 rounded bg-muted" /><div className="mt-5 h-20 max-w-xl rounded bg-muted" /><div className="mt-10 h-96 rounded-3xl bg-muted" /></div></div>; }
+export default function Loading() {
+  return (
+    <div className="min-h-screen animate-pulse bg-background">
+      <div className="mx-auto max-w-7xl px-5 pt-32">
+        <div className="h-5 w-28 rounded bg-muted" />
+        <div className="mt-5 h-20 max-w-xl rounded bg-muted" />
+        <div className="mt-10 h-96 rounded-3xl bg-muted" />
+      </div>
+    </div>
+  );
+}

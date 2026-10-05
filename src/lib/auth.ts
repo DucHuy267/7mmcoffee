@@ -10,7 +10,8 @@ export type AdminSession = { userId: string; email: string; role: "admin" };
 
 function secret() {
   const value = process.env.AUTH_SECRET;
-  if (!value || value.length < 32) throw new Error("AUTH_SECRET must be at least 32 characters.");
+  if (!value || value.length < 32)
+    throw new Error("AUTH_SECRET must be at least 32 characters.");
   return encoder.encode(value);
 }
 
@@ -28,7 +29,12 @@ export async function getSession(): Promise<AdminSession | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
-    if (payload.role !== "admin" || !payload.sub || typeof payload.email !== "string") return null;
+    if (
+      payload.role !== "admin" ||
+      !payload.sub ||
+      typeof payload.email !== "string"
+    )
+      return null;
     return { userId: payload.sub, email: payload.email, role: "admin" };
   } catch {
     return null;
@@ -42,6 +48,6 @@ export const sessionCookie = {
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7
-  }
+    maxAge: 60 * 60 * 24 * 7,
+  },
 };

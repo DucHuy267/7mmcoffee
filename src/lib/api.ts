@@ -5,7 +5,11 @@ export function success<T>(data: T, init?: ResponseInit) {
   return NextResponse.json({ success: true, data }, init);
 }
 
-export function failure(message: string, status = 400, errors?: Record<string, string[]>) {
+export function failure(
+  message: string,
+  status = 400,
+  errors?: Record<string, string[]>,
+) {
   return NextResponse.json({ success: false, message, errors }, { status });
 }
 
@@ -16,7 +20,10 @@ export async function parseJson<T>(request: Request, schema: ZodType<T>) {
   } catch (error) {
     if (error instanceof ZodError) {
       const errors = Object.fromEntries(
-        Object.entries(error.flatten().fieldErrors).map(([key, value]) => [key, (value ?? []) as string[]])
+        Object.entries(error.flatten().fieldErrors).map(([key, value]) => [
+          key,
+          (value ?? []) as string[],
+        ]),
       ) as Record<string, string[]>;
       return { error: failure("Dữ liệu chưa hợp lệ.", 422, errors) } as const;
     }
@@ -24,7 +31,10 @@ export async function parseJson<T>(request: Request, schema: ZodType<T>) {
   }
 }
 
-export function handleApiError(error: unknown, fallback = "Có lỗi xảy ra.\nVui lòng thử lại.") {
+export function handleApiError(
+  error: unknown,
+  fallback = "Có lỗi xảy ra.\nVui lòng thử lại.",
+) {
   console.error(error);
   return failure(fallback, 500);
 }

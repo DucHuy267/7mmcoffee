@@ -9,7 +9,7 @@ export function formatPrice(value: number, locale: "vi" | "en") {
   return new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US", {
     style: "currency",
     currency: "VND",
-    maximumFractionDigits: 0
+    maximumFractionDigits: 0,
   }).format(value);
 }
 

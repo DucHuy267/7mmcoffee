@@ -7,5 +7,77 @@ import { StoryCard } from "@/components/stories/StoryCard";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { Locale } from "@/types/content";
 
-export const metadata: Metadata = { title: "Stories", description: "The journal of 7mmcoffee—coffee, people and moments." };
-export default async function StoriesPage({ params }: { params: Promise<{ locale: string }> }) { const { locale: rawLocale } = await params; const locale = rawLocale as Locale; setRequestLocale(locale); const [stories, t, common] = await Promise.all([getStories(locale), getTranslations("Stories"), getTranslations("Common")]); const featured = stories.find((story) => story.featured) ?? stories[0]; const rest = stories.filter((story) => story.id !== featured?.id); return <section className="px-5 pb-20 pt-36 lg:px-8 lg:pb-28"><div className="mx-auto max-w-7xl"><p className="text-xs font-semibold uppercase tracking-[.22em] text-coffee">{t("eyebrow")}</p><h1 className="mt-4 max-w-2xl font-display text-5xl leading-[1.02] text-espresso sm:text-7xl">{t("title")}</h1>{featured ? <><Link href={`/stories/${featured.slug}`} className="group mt-14 grid overflow-hidden rounded-3xl bg-espresso text-white lg:grid-cols-[1.1fr_.9fr]"><div className="relative min-h-72"><Image src={featured.coverImage} alt={featured.title} fill priority sizes="(max-width: 1024px) 100vw, 55vw" className="object-cover transition duration-500 group-hover:scale-105" /></div><div className="flex flex-col justify-center p-7 sm:p-10"><p className="text-xs font-semibold uppercase tracking-[.2em] text-cream/65">{featured.category}</p><h2 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">{featured.title}</h2><p className="mt-5 line-clamp-3 text-sm leading-6 text-cream/70">{featured.excerpt}</p><span className="mt-8 text-sm font-semibold text-cream underline underline-offset-4">{common("readMore")}</span></div></Link><div className="mt-12 grid gap-9 md:grid-cols-2 lg:grid-cols-3">{rest.map((story) => <StoryCard key={story.id} story={story} locale={locale} />)}</div></> : <div className="mt-12"><EmptyState>{common("empty")}</EmptyState></div>}</div></section>; }
+export const metadata: Metadata = {
+  title: "Stories",
+  description: "The journal of 7mmcoffee—coffee, people and moments.",
+};
+export default async function StoriesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: rawLocale } = await params;
+  const locale = rawLocale as Locale;
+  setRequestLocale(locale);
+  const [stories, t, common] = await Promise.all([
+    getStories(locale),
+    getTranslations("Stories"),
+    getTranslations("Common"),
+  ]);
+  const featured = stories.find((story) => story.featured) ?? stories[0];
+  const rest = stories.filter((story) => story.id !== featured?.id);
+  return (
+    <section className="px-5 pb-20 pt-36 lg:px-8 lg:pb-28">
+      <div className="mx-auto max-w-7xl">
+        <p className="text-xs font-semibold uppercase tracking-[.22em] text-coffee">
+          {t("eyebrow")}
+        </p>
+        <h1 className="mt-4 max-w-2xl font-display text-5xl leading-[1.02] text-espresso sm:text-7xl">
+          {t("title")}
+        </h1>
+        {featured ? (
+          <>
+            <Link
+              href={`/stories/${featured.slug}`}
+              className="group mt-14 grid overflow-hidden rounded-3xl bg-espresso text-white lg:grid-cols-[1.1fr_.9fr]"
+            >
+              <div className="relative min-h-72">
+                <Image
+                  src={featured.coverImage}
+                  alt={featured.title}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  className="object-cover transition duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="flex flex-col justify-center p-7 sm:p-10">
+                <p className="text-xs font-semibold uppercase tracking-[.2em] text-cream/65">
+                  {featured.category}
+                </p>
+                <h2 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
+                  {featured.title}
+                </h2>
+                <p className="mt-5 line-clamp-3 text-sm leading-6 text-cream/70">
+                  {featured.excerpt}
+                </p>
+                <span className="mt-8 text-sm font-semibold text-cream underline underline-offset-4">
+                  {common("readMore")}
+                </span>
+              </div>
+            </Link>
+            <div className="mt-12 grid gap-9 md:grid-cols-2 lg:grid-cols-3">
+              {rest.map((story) => (
+                <StoryCard key={story.id} story={story} locale={locale} />
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="mt-12">
+            <EmptyState>{common("empty")}</EmptyState>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

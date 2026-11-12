@@ -61,3 +61,39 @@ export type PublicSettings = {
   instagramUrl: string;
   tiktokUrl: string;
 };
+
+export type PublicStaff = {
+  id: string;
+  name: string;
+  role: string;
+};
+
+export type WorkSegment = {
+  startTime: string;
+  endTime: string;
+};
+
+export type PublicWorkSchedule = {
+  id: string;
+  staffId: string;
+  staffName: string;
+  staffRole: string;
+  workDate: string;
+
+  shiftType?: "full_time" | "part_time";
+  segments?: WorkSegment[];
+
+  shiftName: string;
+  status: "assigned" | "swapped" | "off";
+  note: string;
+};
+
+export type PublicDeepCleanTask = {
+  id: string;
+  taskName: string;
+  detail: string;
+  assignedToId: string;
+  assignedToName: string;
+  dueDate: string;
+  status: "pending" | "in_progress" | "completed";
+};

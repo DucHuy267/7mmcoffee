@@ -66,5 +66,30 @@
   "Footer": {
     "tagline": "More than coffee, it’s a moment.",
     "copyright": "© {year} 7mmcoffee. Mọi quyền được bảo lưu."
+  },
+  "Staff": {
+    "eyebrow": "Không gian nhân viên",
+    "title": "Lịch làm việc của đội ngũ.",
+    "subtitle": "Xem ca làm và nhiệm vụ Deep Clean trong tuần.",
+    "allStaff": "Toàn bộ đội ngũ",
+    "chooseStaff": "Chọn tên để xem lịch",
+    "accessCode": "Mã nhân viên",
+    "accessPlaceholder": "Nhập mã của bạn",
+    "checkCode": "Xem lịch cá nhân",
+    "schedule": "Lịch làm việc",
+    "deepClean": "Việc Deep Clean",
+    "noSchedules": "Chưa có ca làm trong tuần này.",
+    "noTasks": "Chưa có việc Deep Clean trong tuần này.",
+    "assigned": "Đã phân công",
+    "swapped": "Đổi ca",
+    "off": "Nghỉ",
+    "pending": "Chưa làm",
+    "inProgress": "Đang làm",
+    "completed": "Hoàn thành",
+    "week": "Tuần",
+    "previous": "Tuần trước",
+    "current": "Tuần này",
+    "next": "Tuần sau",
+    "personalFor": "Lịch cá nhân của {name}"
   }
 }

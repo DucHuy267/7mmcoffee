@@ -66,5 +66,30 @@
   "Footer": {
     "tagline": "More than coffee, it’s a moment.",
     "copyright": "© {year} 7mmcoffee. All rights reserved."
+  },
+  "Staff": {
+    "eyebrow": "Staff space",
+    "title": "The team’s weekly rhythm.",
+    "subtitle": "Check work shifts and Deep Clean tasks for the week.",
+    "allStaff": "Entire team",
+    "chooseStaff": "Choose a name to view shifts",
+    "accessCode": "Staff code",
+    "accessPlaceholder": "Enter your code",
+    "checkCode": "View my schedule",
+    "schedule": "Work schedule",
+    "deepClean": "Deep Clean tasks",
+    "noSchedules": "There are no shifts this week.",
+    "noTasks": "There are no Deep Clean tasks this week.",
+    "assigned": "Assigned",
+    "swapped": "Swapped",
+    "off": "Day off",
+    "pending": "Not started",
+    "inProgress": "In progress",
+    "completed": "Complete",
+    "week": "Week",
+    "previous": "Previous week",
+    "current": "This week",
+    "next": "Next week",
+    "personalFor": "Personal schedule for {name}"
   }
 }

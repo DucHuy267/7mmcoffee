@@ -8,6 +8,7 @@ import {
   Menu,
   Settings2,
   Tags,
+  UsersRound,
   X,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -18,6 +19,7 @@ const links = [
   { href: "/admin/products", label: "Sản phẩm", icon: Coffee },
   { href: "/admin/categories", label: "Danh mục", icon: Tags },
   { href: "/admin/stories", label: "Bài viết", icon: BookOpenText },
+  { href: "/admin/staff", label: "Nhân viên", icon: UsersRound },
   { href: "/admin/about", label: "Giới thiệu", icon: Settings2 },
   { href: "/admin/settings", label: "Cài đặt", icon: Settings2 },
   { href: "/admin/messages", label: "Tin nhắn", icon: Mail },

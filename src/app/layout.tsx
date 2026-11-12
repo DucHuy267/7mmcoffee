@@ -1,17 +1,5 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, Inter } from "next/font/google";
 import "./globals.css";
-
-const displayFont = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-display-custom",
-});
-
-const sansFont = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans-custom",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -29,9 +17,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="vi" suppressHydrationWarning>
-      <body className={`${displayFont.variable} ${sansFont.variable}`}>
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

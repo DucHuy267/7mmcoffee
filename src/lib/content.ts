@@ -6,6 +6,10 @@ import { ContactMessage } from "@/models/ContactMessage";
 import { Product } from "@/models/Product";
 import { SiteSettings } from "@/models/SiteSettings";
 import { Story } from "@/models/Story";
+import { Staff } from "@/models/Staff";
+import { WorkSchedule } from "@/models/WorkSchedule";
+import { DeepCleanTask } from "@/models/DeepCleanTask";
+import { addDays } from "@/lib/staff-dates";
 import type {
   Locale,
   PublicAbout,
@@ -13,6 +17,9 @@ import type {
   PublicProduct,
   PublicSettings,
   PublicStory,
+  PublicStaff,
+  PublicWorkSchedule,
+  PublicDeepCleanTask,
 } from "@/types/content";
 
 type Id = { toString(): string };
@@ -99,6 +106,34 @@ type RawSettings = {
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
+};
+type RawStaff = {
+  _id: Id;
+  name: string;
+  role: string;
+  phone?: string;
+  active?: boolean;
+};
+type RawSchedule = {
+  _id: Id;
+  staff: RawStaff;
+  workDate: string;
+  shiftType?: "full_time" | "part_time";
+  segments?: {
+    startTime: string;
+    endTime: string;
+  }[];
+  shiftName: string;
+  status: "assigned" | "swapped" | "off";
+  note: string;
+};
+type RawDeepCleanTask = {
+  _id: Id;
+  taskName: string;
+  detail: string;
+  assignedTo: RawStaff;
+  dueDate: string;
+  status: "pending" | "in_progress" | "completed";
 };
 
 function local(value: object, field: string, locale: Locale) {
@@ -282,4 +317,94 @@ export async function getDashboardStats() {
     activeProducts,
     publishedStories,
   };
+}
+
+function mapStaff(row: RawStaff): PublicStaff {
+  return { id: row._id.toString(), name: row.name, role: row.role };
+}
+
+function mapSchedule(row: RawSchedule): PublicWorkSchedule | null {
+  if (!row.staff) return null;
+
+  return {
+    id: row._id.toString(),
+    staffId: row.staff._id.toString(),
+    staffName: row.staff.name,
+    staffRole: row.staff.role,
+    workDate: row.workDate,
+
+    shiftType: row.shiftType ?? "part_time",
+
+    segments: (row.segments ?? []).map((segment) => ({
+      startTime: segment.startTime,
+      endTime: segment.endTime,
+    })),
+
+    shiftName: row.shiftName,
+    status: row.status,
+    note: row.note,
+  };
+}
+
+function mapDeepCleanTask(row: RawDeepCleanTask): PublicDeepCleanTask | null {
+  if (!row.assignedTo) return null;
+  return {
+    id: row._id.toString(),
+    taskName: row.taskName,
+    detail: row.detail,
+    assignedToId: row.assignedTo._id.toString(),
+    assignedToName: row.assignedTo.name,
+    dueDate: row.dueDate,
+    status: row.status,
+  };
+}
+
+export async function getPublicStaff() {
+  await connectToDatabase();
+  const rows = (await Staff.find({ active: true })
+    .select("name role")
+    .sort({ name: 1 })
+    .lean()) as unknown as RawStaff[];
+  return rows.map(mapStaff);
+}
+
+export async function getStaffPortalData(weekStart: string, staffId?: string) {
+  await connectToDatabase();
+  const weekEnd = addDays(weekStart, 6);
+  const staffFilter = staffId ? { staff: staffId } : {};
+  const taskFilter = staffId ? { assignedTo: staffId } : {};
+  const [schedules, tasks] = await Promise.all([
+    WorkSchedule.find({
+      workDate: { $gte: weekStart, $lte: weekEnd },
+      ...staffFilter,
+    })
+      .populate({ path: "staff", select: "name role" })
+      .sort({ workDate: 1 })
+      .lean(),
+    DeepCleanTask.find({
+      dueDate: { $gte: weekStart, $lte: weekEnd },
+      ...taskFilter,
+    })
+      .populate({ path: "assignedTo", select: "name role" })
+      .sort({ dueDate: 1, status: 1 })
+      .lean(),
+  ]);
+  return {
+    schedules: (schedules as unknown as RawSchedule[])
+      .map(mapSchedule)
+      .filter((row): row is PublicWorkSchedule => row !== null),
+    tasks: (tasks as unknown as RawDeepCleanTask[])
+      .map(mapDeepCleanTask)
+      .filter((row): row is PublicDeepCleanTask => row !== null),
+  };
+}
+
+export async function getStaffPortalByCode(code: string, weekStart: string) {
+  await connectToDatabase();
+  const staff = (await Staff.findOne({ accessCode: code, active: true })
+    .select("+accessCode name role")
+    .lean()) as unknown as RawStaff | null;
+  if (!staff) return null;
+  const data = await getStaffPortalData(weekStart, staff._id.toString());
+  return { staff: mapStaff(staff), ...data };
 }

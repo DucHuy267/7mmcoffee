@@ -8,6 +8,10 @@ import { Product } from "../src/models/Product";
 import { SiteSettings } from "../src/models/SiteSettings";
 import { Story } from "../src/models/Story";
 import { User } from "../src/models/User";
+import { Staff } from "../src/models/Staff";
+import { WorkSchedule } from "../src/models/WorkSchedule";
+import { DeepCleanTask } from "../src/models/DeepCleanTask";
+import { addDays, weekStartFor } from "../src/lib/staff-dates";
 
 const image = (id: string) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1600&q=85`;
 
@@ -52,6 +56,30 @@ async function seed() {
   for (let index = 0; index < stories.length; index++) { const [slug, titleVi, titleEn, excerptVi, excerptEn, contentVi, contentEn, category, author, photo, featured] = stories[index]; await Story.updateOne({ slug }, { $set: { titleVi, titleEn, slug, excerptVi, excerptEn, contentVi, contentEn, coverImage: image(photo), category, author, publishedAt: new Date(Date.now() - index * 86400000 * 7), status: "published", featured, seoTitleVi: titleVi, seoTitleEn: titleEn, seoDescriptionVi: excerptVi, seoDescriptionEn: excerptEn } }, { upsert: true }); }
   await About.findOneAndUpdate({}, { $set: { heroTitleVi: "Cà phê, với một nhịp riêng.", heroTitleEn: "Coffee, at its own rhythm.", heroSubtitleVi: "7mmcoffee là không gian cho những cuộc gặp gỡ, khoảng lặng và các ly cà phê được pha cẩn thận.", heroSubtitleEn: "7mmcoffee is a space for meetings, quiet pauses and coffee made with care.", heroImage: image("photo-1445116572660-236099ec97a0"), storyTitleVi: "Chúng tôi tin vào những điều được làm chậm.", storyTitleEn: "We believe in things made slowly.", storyContentVi: "7mmcoffee sinh ra từ tình yêu với những chi tiết nhỏ: hạt cà phê có nguồn gốc rõ ràng, chiếc ghế đủ thoải mái để bạn ngồi lâu, và người pha chế nhớ cách bạn thích ly cà phê của mình.\n\nKhông chỉ là một quán cà phê, đây là nơi để bạn dừng lại giữa nhịp sống nhiều chuyển động—một chút, nhưng vừa đủ.", storyContentEn: "7mmcoffee began with a love for small details: traceable beans, chairs comfortable enough to linger in and baristas who remember how you enjoy your coffee.\n\nMore than a coffee shop, it is a place to pause within a moving city—just a little, but enough.", coffeeTitleVi: "Từ hạt đến khoảnh khắc", coffeeTitleEn: "From bean to moment", coffeeContentVi: "Chúng tôi tìm kiếm những hạt cà phê có vị ngọt tự nhiên và rang chúng để giữ lại nét riêng của vùng trồng. Mỗi công thức được thử lại mỗi ngày, vì một ly cà phê tử tế luôn cần sự nhất quán.", coffeeContentEn: "We seek beans with natural sweetness and roast them to preserve the character of their origin. Every recipe is tested daily because a thoughtful cup needs consistency.", philosophy: [{ titleVi: "Chất lượng", titleEn: "Quality", descriptionVi: "Đầu tư vào hạt, nước và kỹ thuật—không thỏa hiệp.", descriptionEn: "Care for beans, water and craft without compromise." }, { titleVi: "Kết nối", titleEn: "Connection", descriptionVi: "Tạo ra một nơi những cuộc trò chuyện được bắt đầu.", descriptionEn: "Make space for conversations to begin." }, { titleVi: "Sáng tạo", titleEn: "Creativity", descriptionVi: "Luôn tò mò với hương vị và những cách kể chuyện mới.", descriptionEn: "Stay curious about flavour and new ways to tell a story." }], gallery: [image("photo-1495474472287-4d71bcdd2085"), image("photo-1518005020951-eccb494ad742"), image("photo-1498804103079-a6351b050096"), image("photo-1442512595331-e89e73853f31")], cta: { labelVi: "Ghé thăm 7mmcoffee", labelEn: "Visit 7mmcoffee", href: "/contact" } } }, { upsert: true, new: true });
   await SiteSettings.findOneAndUpdate({}, { $set: { siteName: "7mmcoffee", heroImage: image("photo-1495474472287-4d71bcdd2085"), heroVideo: "", heroSloganVi: "Hơn cả cà phê, đó là một khoảnh khắc.", heroSloganEn: "More than coffee, it’s a moment.", addressVi: "27 Nguyễn Hữu Cầu, Phường Tân Định, Quận 1, TP. Hồ Chí Minh", addressEn: "27 Nguyen Huu Cau, Tan Dinh Ward, District 1, Ho Chi Minh City", phone: "+84 28 7307 7007", email: "hello@7mmcoffee.vn", openingHoursVi: "Mỗi ngày · 07:00 — 22:00", openingHoursEn: "Daily · 07:00 — 22:00", googleMapsUrl: "https://maps.google.com", facebookUrl: "https://facebook.com", instagramUrl: "https://instagram.com", tiktokUrl: "https://tiktok.com" } }, { upsert: true, new: true });
+  const team = [
+    { name: "Mai Anh", phone: "0901 222 333", role: "Quản lý", accessCode: "7MM-MAI01", active: true },
+    { name: "Minh Khoa", phone: "0902 444 555", role: "BS", accessCode: "7MM-KHOA02", active: true },
+    { name: "Thu Hà", phone: "0903 666 777", role: "BC", accessCode: "7MM-HA003", active: true },
+    { name: "Gia Hân", phone: "0904 888 999", role: "Barista", accessCode: "7MM-HAN04", active: true }
+  ];
+  for (const member of team) await Staff.updateOne({ accessCode: member.accessCode }, { $set: member }, { upsert: true });
+  const staffRows = await Staff.find().select("+accessCode").lean();
+  const staffId = (code: string) => { const staff = staffRows.find((row) => row.accessCode === code); if (!staff) throw new Error(`Staff ${code} missing`); return staff._id; };
+  const weekStart = weekStartFor();
+  const shifts = [
+    ["7MM-MAI01", 0, "Ca sáng"], ["7MM-MAI01", 2, "Ca sáng"], ["7MM-MAI01", 4, "Ca chiều"],
+    ["7MM-KHOA02", 0, "Ca chiều"], ["7MM-KHOA02", 1, "Ca sáng"], ["7MM-KHOA02", 3, "Ca tối"], ["7MM-KHOA02", 5, "Ca sáng"],
+    ["7MM-HA003", 1, "Ca chiều"], ["7MM-HA003", 2, "Ca tối"], ["7MM-HA003", 4, "Ca sáng"], ["7MM-HA003", 6, "Ca chiều"],
+    ["7MM-HAN04", 0, "Ca tối"], ["7MM-HAN04", 3, "Ca sáng"], ["7MM-HAN04", 5, "Ca chiều"], ["7MM-HAN04", 6, "Ca sáng"]
+  ] as const;
+  for (const [code, day, shiftName] of shifts) { const workDate = addDays(weekStart, day); await WorkSchedule.updateOne({ staff: staffId(code), workDate }, { $set: { staff: staffId(code), workDate, shiftName, status: "assigned", note: "" } }, { upsert: true }); }
+  const cleanTasks = [
+    ["Vệ sinh máy pha cà phê", "Backflush, vệ sinh group head và kiểm tra gioăng.", "7MM-KHOA02", 1],
+    ["Lau kính mặt tiền", "Lau sạch cả mặt trong và mặt ngoài trước giờ mở cửa.", "7MM-HA003", 3],
+    ["Cọ sàn khu bar", "Làm sạch khu vực máy xay, quầy bar và hộc tủ dưới.", "7MM-HAN04", 5],
+    ["Vệ sinh tủ lạnh", "Kiểm tra date, lau kệ và sắp xếp nguyên liệu.", "7MM-MAI01", 6]
+  ] as const;
+  for (const [taskName, detail, code, day] of cleanTasks) { const dueDate = addDays(weekStart, day); await DeepCleanTask.updateOne({ taskName, dueDate }, { $set: { taskName, detail, assignedTo: staffId(code), dueDate, status: "pending", recurrenceGroup: "seed-weekly" } }, { upsert: true }); }
   console.log(`Seeded 7mmcoffee. Admin: ${email}`);
 }
 

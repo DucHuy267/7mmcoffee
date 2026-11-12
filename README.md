@@ -6,7 +6,7 @@ A bilingual, production-ready foundation for a premium coffee-shop website and C
 
 1. Install dependencies with `pnpm install` (or `npm install` if npm is available).
 2. Copy `.env.example` to `.env.local` and fill in `MONGODB_URI` and a 32+ character `AUTH_SECRET`.
-3. Run `pnpm seed` to create the admin, five categories, ten products, four stories, About content and site settings.
+3. Run `pnpm seed` to create the admin, sample staff, a weekly roster, Deep Clean tasks, five categories, ten products, four stories, About content and site settings.
 4. Start with `pnpm dev`, then visit `http://localhost:3000/vi`.
 5. Sign in to `http://localhost:3000/admin/login` using `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` (defaults are shown in `.env.example`; change them before production).
 
@@ -32,5 +32,6 @@ pnpm seed
 
 - Public pages are server-rendered from MongoDB under `/vi` and `/en`.
 - CMS routes live under `/admin`, with JWT httpOnly-cookie authorization at the dashboard layout and all write APIs.
+- Staff operations are under `/admin/staff`; staff can open `/vi/staff` or `/en/staff` without an admin login. That page exposes no phone numbers or access codes, and supports an individual-code lookup as a private shortcut.
 - `/api/products`, `/api/categories`, `/api/stories`, `/api/about`, `/api/settings`, and `/api/contact` return consistent `{ success, data }` responses and validate writes with Zod.
 - CMS content is not embedded in public components; the seed script only supplies first-run content.

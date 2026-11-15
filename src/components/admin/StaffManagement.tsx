@@ -1108,10 +1108,14 @@ function ScheduleForm({
 
 function DeepCleanBoard() {
   const [weekStart, setWeekStart] = useState(weekStartFor());
+
+  const dates = useMemo(() => weekDates(weekStart), [weekStart]);
+
   const { data: staff } = useSWR<AdminStaff[]>(
     "/api/staff?admin=true",
     fetchData,
   );
+
   const {
     data: tasks,
     error,
@@ -1121,12 +1125,16 @@ function DeepCleanBoard() {
     `/api/deep-clean-tasks?admin=true&weekStart=${weekStart}`,
     fetchData,
   );
+
   const [editing, setEditing] = useState<
     PublicDeepCleanTask | null | undefined
   >(undefined);
+
   const [notice, setNotice] = useState<string | null>(null);
+
   async function remove(task: PublicDeepCleanTask) {
-    if (!window.confirm(`Xóa “${task.taskName}”?`)) return;
+    if (!window.confirm(`Xóa "${task.taskName}"?`)) return;
+
     try {
       await send(`/api/deep-clean-tasks/${task.id}`, "DELETE");
       setNotice("Đã xóa công việc.");
@@ -1135,87 +1143,192 @@ function DeepCleanBoard() {
       setNotice(reason instanceof Error ? reason.message : "Không thể xóa.");
     }
   }
+
+  const allTasks = tasks ?? [];
+
+  const tasksByDate = (date: string) =>
+    allTasks
+      .filter((task) => task.dueDate === date)
+      .sort((a, b) => a.taskName.localeCompare(b.taskName, "vi"));
+
+  const completedCount = allTasks.filter(
+    (task) => task.status === "completed",
+  ).length;
+
   return (
     <section>
       <WeekHeader weekStart={weekStart} onChange={setWeekStart} />
+
       <div className="mb-5 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
         <div>
           <h2 className="font-display text-3xl text-espresso">
             Lịch Deep Clean
           </h2>
+
           <p className="mt-1 text-sm text-muted-foreground">
-            Tạo một việc thủ công hoặc lặp lại hàng tuần trong tối đa 12 tuần.
+            Theo dõi công việc vệ sinh, nhân viên phụ trách và tiến độ hoàn
+            thành.
           </p>
         </div>
+
         <Button onClick={() => setEditing(null)}>
           <Plus size={17} />
           Tạo công việc
         </Button>
       </div>
+
       {notice ? <Notice>{notice}</Notice> : null}
+
       {error ? <ErrorText>{error.message}</ErrorText> : null}
+
+      {!isLoading && tasks && (
+        <div className="mb-4 flex flex-wrap gap-3">
+          <div className="rounded-xl border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Tổng công việc</p>
+            <p className="mt-1 text-xl font-semibold text-espresso">
+              {allTasks.length}
+            </p>
+          </div>
+
+          <div className="rounded-xl border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Đã hoàn thành</p>
+            <p className="mt-1 text-xl font-semibold text-green-700">
+              {completedCount}
+            </p>
+          </div>
+
+          <div className="rounded-xl border bg-card px-4 py-3">
+            <p className="text-xs text-muted-foreground">Chưa hoàn thành</p>
+            <p className="mt-1 text-xl font-semibold text-amber-700">
+              {allTasks.length - completedCount}
+            </p>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <LoadingRows />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {tasks?.map((task) => (
-            <article
-              key={task.id}
-              className="rounded-2xl border bg-card p-5 shadow-sm"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[.16em] text-coffee">
-                    Hạn{" "}
-                    {format(
-                      new Date(`${task.dueDate}T00:00:00Z`),
-                      "EEE, dd/MM",
-                      { locale: vi },
-                    )}
-                  </p>
-                  <h3 className="mt-2 font-display text-2xl text-espresso">
-                    {task.taskName}
-                  </h3>
-                </div>
-                <TaskStatusPill status={task.status} />
-              </div>
-              {task.detail ? (
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {task.detail}
-                </p>
-              ) : null}
-              <div className="mt-5 flex items-center justify-between border-t pt-4">
-                <p className="text-sm text-muted-foreground">
-                  Phụ trách{" "}
-                  <span className="font-medium text-espresso">
-                    {task.assignedToName}
-                  </span>
-                </p>
-                <div className="flex gap-1">
-                  <IconButton
-                    label="Chỉnh sửa"
-                    onClick={() => setEditing(task)}
-                  >
-                    <Pencil size={16} />
-                  </IconButton>
-                  <IconButton
-                    label="Xóa"
-                    danger
-                    onClick={() => void remove(task)}
-                  >
-                    <Trash2 size={16} />
-                  </IconButton>
-                </div>
-              </div>
-            </article>
-          ))}
-          {tasks?.length === 0 ? (
-            <div className="lg:col-span-2">
-              <EmptyTable>Chưa có việc Deep Clean trong tuần này.</EmptyTable>
-            </div>
+        <div className="overflow-x-auto rounded-2xl border bg-card">
+          <table className="w-full min-w-[850px] border-collapse text-left text-sm">
+            <thead>
+              <tr className="bg-muted/40">
+                <th className="sticky left-0 z-20 min-w-36 border-b bg-muted/40 px-5 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Thứ / Ngày
+                </th>
+
+                <th className="min-w-64 border-b px-5 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Công việc
+                </th>
+
+                <th className="min-w-40 border-b px-5 py-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Phụ trách
+                </th>
+
+                <th className="min-w-36 border-b px-5 py-4 text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Hoàn thành
+                </th>
+
+                <th className="min-w-24 border-b px-4 py-4 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Thao tác
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {dates.map((date) => {
+                const dayTasks = tasksByDate(date);
+
+                return (
+                  <tr key={date} className="border-b last:border-0">
+                    <th
+                      scope="row"
+                      className="sticky left-0 z-10 min-w-36 border-r bg-card px-5 py-4 align-top"
+                    >
+                      <p className="font-semibold text-espresso">
+                        {format(new Date(`${date}T00:00:00Z`), "EEEE", {
+                          locale: vi,
+                        })}
+                      </p>
+
+                      <p className="mt-1 text-xs font-normal text-muted-foreground">
+                        {format(new Date(`${date}T00:00:00Z`), "dd/MM/yyyy", {
+                          locale: vi,
+                        })}
+                      </p>
+                    </th>
+
+                    <td colSpan={4} className="p-0 align-top">
+                      {dayTasks.length > 0 ? (
+                        <table className="w-full border-collapse">
+                          <tbody>
+                            {dayTasks.map((task) => (
+                              <tr
+                                key={task.id}
+                                className="border-b last:border-b-0 hover:bg-muted/20"
+                              >
+                                <td className="min-w-64 px-5 py-4">
+                                  <p className="font-medium text-espresso">
+                                    {task.taskName}
+                                  </p>
+
+                                  {task.detail ? (
+                                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                      {task.detail}
+                                    </p>
+                                  ) : null}
+                                </td>
+
+                                <td className="min-w-40 px-5 py-4">
+                                  <p className="text-sm text-espresso">
+                                    {task.assignedToName}
+                                  </p>
+                                </td>
+
+                                <td className="min-w-36 px-5 py-4 text-center">
+                                  <TaskStatusPill status={task.status} />
+                                </td>
+
+                                <td className="min-w-24 px-4 py-4">
+                                  <div className="flex justify-end gap-1">
+                                    <IconButton
+                                      label="Chỉnh sửa"
+                                      onClick={() => setEditing(task)}
+                                    >
+                                      <Pencil size={16} />
+                                    </IconButton>
+
+                                    <IconButton
+                                      label="Xóa"
+                                      danger
+                                      onClick={() => void remove(task)}
+                                    >
+                                      <Trash2 size={16} />
+                                    </IconButton>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      ) : (
+                        <div className="flex min-h-16 items-center px-5 py-4 text-xs text-muted-foreground">
+                          Chưa có công việc trong ngày này.
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {allTasks.length === 0 ? (
+            <EmptyTable>Chưa có việc Deep Clean trong tuần này.</EmptyTable>
           ) : null}
         </div>
       )}
+
       <Dialog
         open={editing !== undefined}
         onOpenChange={(open) => !open && setEditing(undefined)}
@@ -1226,6 +1339,7 @@ function DeepCleanBoard() {
               <DialogTitle>
                 {editing ? "Cập nhật việc Deep Clean" : "Tạo việc Deep Clean"}
               </DialogTitle>
+
               <DeepCleanForm
                 key={editing?.id ?? "new"}
                 staff={staff?.filter((member) => member.active) ?? []}

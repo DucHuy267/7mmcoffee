@@ -35,6 +35,44 @@ async function fetchData<T>(url: string): Promise<T> {
   return payload.data;
 }
 
+function formatStaffDate(dateString: string, locale: string) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  const weekday = date.getUTCDay();
+
+  if (locale === "vi") {
+    const weekdays = [
+      "Chủ nhật",
+      "Thứ 2",
+      "Thứ 3",
+      "Thứ 4",
+      "Thứ 5",
+      "Thứ 6",
+      "Thứ 7",
+    ];
+
+    return `${weekdays[weekday]}, ${day} thg ${month}`;
+  }
+
+  const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  return `${weekdays[weekday]}, ${months[month - 1]} ${day}`;
+}
+
 export function StaffPortal({
   staff,
   initialSchedules,
@@ -49,6 +87,9 @@ export function StaffPortal({
   const locale = useLocale();
   const t = useTranslations("Staff");
   const [weekStart, setWeekStart] = useState(initialWeek);
+  const [activeTab, setActiveTab] = useState<"schedule" | "deepClean">(
+    "schedule",
+  );
   const [selectedId, setSelectedId] = useState("all");
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -80,15 +121,11 @@ export function StaffPortal({
     ? personal.schedules
     : (schedulesResult.data ?? []);
   const tasks = personal ? personal.tasks : (tasksResult.data ?? []);
-  const dateFormat = useMemo(
-    () =>
-      new Intl.DateTimeFormat(locale === "vi" ? "vi-VN" : "en-US", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        timeZone: "UTC",
-      }),
-    [locale],
+  const dateFormat = (
+    <p className="mt-1 font-display text-2xl text-espresso">
+      {formatStaffDate(weekStart, locale)} —{" "}
+      {formatStaffDate(addDays(weekStart, 6), locale)}
+    </p>
   );
   async function verifyCode(event: React.FormEvent) {
     event.preventDefault();
@@ -148,10 +185,8 @@ export function StaffPortal({
                 {t("week")}
               </p>
               <p className="mt-1 font-display text-2xl text-espresso">
-                {dateFormat.format(new Date(`${weekStart}T00:00:00Z`))} —{" "}
-                {dateFormat.format(
-                  new Date(`${addDays(weekStart, 6)}T00:00:00Z`),
-                )}
+                {formatStaffDate(weekStart, locale)} —{" "}
+                {formatStaffDate(addDays(weekStart, 6), locale)}
               </p>
             </div>
             <div className="flex gap-2">
@@ -234,61 +269,114 @@ export function StaffPortal({
             </p>
           ) : null}
         </section>
-        <section className="mt-8">
-          <Heading icon={<CalendarMark />} title={t("schedule")} />
-          {schedulesResult.error ? (
-            <ErrorText>{schedulesResult.error.message}</ErrorText>
-          ) : null}
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
-            {dates.map((date) => (
-              <DaySchedule
-                key={date}
-                date={date}
-                schedules={schedules.filter(
-                  (schedule) => schedule.workDate === date,
-                )}
-                dateFormat={dateFormat}
-                t={t}
-              />
-            ))}
-          </div>
-          {schedules.length === 0 ? <Empty>{t("noSchedules")}</Empty> : null}
-        </section>
-        <section className="mt-12">
-          <Heading
-            icon={<ClipboardCheck className="text-coffee" size={21} />}
-            title={t("deepClean")}
-          />
-          {tasksResult.error ? (
-            <ErrorText>{tasksResult.error.message}</ErrorText>
-          ) : null}
-          <div className="mt-5 grid gap-3">
-            {tasks.map((task) => (
-              <article key={task.id} className="rounded-2xl border bg-card p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[.14em] text-coffee">
-                      {dateFormat.format(new Date(`${task.dueDate}T00:00:00Z`))}
-                    </p>
-                    <h3 className="mt-1 font-display text-xl text-espresso">
-                      {task.taskName}
-                    </h3>
+        <div className="mt-8 grid grid-cols-2 gap-2 rounded-2xl border bg-card p-2 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setActiveTab("schedule")}
+            aria-pressed={activeTab === "schedule"}
+            className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${
+              activeTab === "schedule"
+                ? "bg-espresso text-white shadow-sm"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            <CalendarMark />
+            <span>{t("schedule")}</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs ${
+                activeTab === "schedule"
+                  ? "bg-white/15 text-white"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {schedules.length}
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("deepClean")}
+            aria-pressed={activeTab === "deepClean"}
+            className={`flex min-h-12 items-center justify-center gap-2 rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${
+              activeTab === "deepClean"
+                ? "bg-espresso text-white shadow-sm"
+                : "text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            <ClipboardCheck size={18} />
+            <span>{t("deepClean")}</span>
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs ${
+                activeTab === "deepClean"
+                  ? "bg-white/15 text-white"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              {tasks.length}
+            </span>
+          </button>
+        </div>
+
+        {activeTab === "schedule" ? (
+          <section className="mt-6" aria-label={t("schedule")}>
+            <Heading icon={<CalendarMark />} title={t("schedule")} />
+            {schedulesResult.error ? (
+              <ErrorText>{schedulesResult.error.message}</ErrorText>
+            ) : null}
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {dates.map((date) => (
+                <DaySchedule
+                  key={date}
+                  date={date}
+                  schedules={schedules.filter(
+                    (schedule) => schedule.workDate === date,
+                  )}
+                  locale={locale}
+                  t={t}
+                />
+              ))}
+            </div>
+            {schedules.length === 0 ? <Empty>{t("noSchedules")}</Empty> : null}
+          </section>
+        ) : (
+          <section className="mt-6" aria-label={t("deepClean")}>
+            <Heading
+              icon={<ClipboardCheck className="text-coffee" size={21} />}
+              title={t("deepClean")}
+            />
+            {tasksResult.error ? (
+              <ErrorText>{tasksResult.error.message}</ErrorText>
+            ) : null}
+            <div className="mt-5 grid gap-3">
+              {tasks.map((task) => (
+                <article
+                  key={task.id}
+                  className="rounded-2xl border bg-card p-4"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[.14em] text-coffee">
+                        {formatStaffDate(task.dueDate, locale)}
+                      </p>
+                      <h3 className="mt-1 font-display text-xl text-espresso">
+                        {task.taskName}
+                      </h3>
+                    </div>
+                    <TaskState status={task.status} t={t} />
                   </div>
-                  <TaskState status={task.status} t={t} />
-                </div>
-                {task.detail ? (
-                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    {task.detail}
+                  {task.detail ? (
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      {task.detail}
+                    </p>
+                  ) : null}
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {task.assignedToName}
                   </p>
-                ) : null}
-                <p className="mt-3 text-xs text-muted-foreground">
-                  {task.assignedToName}
-                </p>
-              </article>
-            ))}
-          </div>
-          {tasks.length === 0 ? <Empty>{t("noTasks")}</Empty> : null}
-        </section>
+                </article>
+              ))}
+            </div>
+            {tasks.length === 0 ? <Empty>{t("noTasks")}</Empty> : null}
+          </section>
+        )}
       </main>
     </div>
   );
@@ -343,18 +431,18 @@ function getSegmentDuration(startTime: string, endTime: string) {
 function DaySchedule({
   date,
   schedules,
-  dateFormat,
+  locale,
   t,
 }: {
   date: string;
   schedules: PublicWorkSchedule[];
-  dateFormat: Intl.DateTimeFormat;
+  locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <article className="rounded-2xl border bg-card p-4">
       <p className="text-xs font-semibold uppercase tracking-[.14em] text-muted-foreground">
-        {dateFormat.format(new Date(`${date}T00:00:00Z`))}
+        {formatStaffDate(date, locale)}
       </p>
 
       {schedules.length ? (
